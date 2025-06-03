@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Guess the Small Plate</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #fdf6e3;
+      color: #333;
+      text-align: center;
+      padding: 2em;
+    }
+    img {
+      max-width: 50%;
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: 1em;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 1em;
+      margin-top: 1em;
+    }
+    .hint, .feedback, .guesses-left {
+      margin-top: 1em;
+      font-weight: bold;
+    }
+    .feedback {
+      font-size: 1.2em;
+      color: #0077cc;
+    }
+    .progress {
+      width: 80%;
+      background-color: #ddd;
+      margin: 2em auto 0;
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background-color: #0077cc;
+      width: 0%;
+      transition: width 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <h1>🍽️ Guess the Small Plate</h1>
+  <img id="dishImage" src="" alt="Dish Image">
+  <div>
+    <input type="text" id="guessInput" placeholder="Enter the restaurant name..." />
+    <button id="guessButton">Guess</button>
+  </div>
+  <div id="feedback" class="feedback"></div>
+  <div id="hint" class="hint"></div>
+  <div id="guessesLeft" class="guesses-left"></div>
+  <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+
+  <script>
+    const rounds = [{"Image_URL": "https://i.postimg.cc/7ZzczXPy/Screenshot-3-6-2025-14371-www-instagram-com-1.jpg", "Answer": "Mangal 2", "Hint 1": "East London restaurant", "Hint 2": "Has a blue sign outside", "Hint 3": "Turkish cuisine with a twist"}, {"Image_URL": "https://media.cntraveller.com/photos/654cd44e502aeca2097805b2/master/w_1920%2Cc_limit/Bone_Marrow_st_John_iconic_eats_London_November23_credit_Sam_A_Harris_PR_Global.png", "Answer": "St John", "Hint 1": "Iconic British restaurant", "Hint 2": "Has three branches", "Hint 3": "Legendary chef Fergus"}, {"Image_URL": "https://media.cntraveller.com/photos/681ddbac5c95f2677543359c/master/w_1920%2Cc_limit/Bread%2520Ahead%2520-%2520HR-73%2520(2).jpg", "Answer": "Bread Ahead", "Hint 1": "Viral doughnut", "Hint 2": "Borough Market staple", "Hint 3": "Rhymes with bed."}, {"Image_URL": "https://media.cntraveller.com/photos/62962aef471dced1efebad84/master/w_1920%2Cc_limit/Beigel-Bake-salt-beef-bagel-may22-pr-global.jpg", "Answer": "Beigel Bake", "Hint 1": "Two words.", "Hint 2": "First word is a misspelled version of the dish", "Hint 3": "Second word is what you do with the uncooked version"}, {"Image_URL": "https://i.postimg.cc/nhMdK2HL/Screenshot-3-6-2025-15259-www-instagram-com.jpg", "Answer": "Dusty Knuckle", "Hint 1": "Bakery", "Hint 2": "Dalston and Haringay", "Hint 3": "Name describes your hands after baking"}];
+
+    const feedbackMessages = [
+      "❌ Not quite, try again!",
+      "🚫 Still off the mark!",
+      "😬 That’s a miss, my friend!",
+      "💥 Last shot! Go for it!"
+    ];
+
+    let currentRound = 0;
+    let currentHint = 0;
+    let guessesRemaining = 4;
+    let score = 0;
+
+    function loadRound() {
+      const round = rounds[currentRound];
+      document.getElementById("dishImage").src = round.Image_URL;
+      document.getElementById("guessInput").value = "";
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("hint").textContent = "";
+      document.getElementById("guessInput").focus();
+      guessesRemaining = 4;
+      currentHint = 0;
+      updateGuessesLeft();
+      updateProgressBar();
+    }
+
+    function updateGuessesLeft() {
+      document.getElementById("guessesLeft").textContent = "Guesses left: " + guessesRemaining;
+    }
+
+    function updateProgressBar() {
+      const progress = (currentRound / rounds.length) * 100;
+      document.getElementById("progressBar").style.width = progress + "%";
+    }
+
+    function checkGuess() {
+      const userGuess = document.getElementById("guessInput").value.toLowerCase().trim();
+      const round = rounds[currentRound];
+      const answer = round.Answer.toLowerCase().trim();
+      const feedback = document.getElementById("feedback");
+      const hint = document.getElementById("hint");
+
+      if (userGuess === answer) {
+        score++;
+        feedback.textContent = "🎉 Boom! You nailed it, player one!";
+        moveToNextRound();
+      } else {
+        guessesRemaining--;
+        updateGuessesLeft();
+        if (guessesRemaining > 0) {
+          feedback.textContent = feedbackMessages[4 - guessesRemaining];
+          const hints = [round["Hint 1"], round["Hint 2"], round["Hint 3"]];
+          if (currentHint < hints.length) {
+            hint.textContent = "💡 Hint: " + hints[currentHint];
+            currentHint++;
+          }
+        } else {
+          feedback.textContent = "😢 Game Over for this round! The answer was " + round.Answer + ".";
+          hint.textContent = "";
+          moveToNextRound();
+        }
+      }
+    }
+
+    function moveToNextRound() {
+      currentRound++;
+      setTimeout(() => {
+        if (currentRound < rounds.length) {
+          loadRound();
+        } else {
+          document.body.innerHTML = "<h1>🏁 Game Over!</h1><p>You guessed " + score + " out of " + rounds.length + " correctly.</p>";
+        }
+      }, 2000);
+    }
+
+    document.getElementById("guessButton").addEventListener("click", checkGuess);
+    document.getElementById("guessInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        checkGuess();
+      }
+    });
+
+    loadRound();
+  </script>
+</body>
+</html>
